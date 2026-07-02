@@ -17,6 +17,8 @@ from huggingface_hub.utils._parsing import format_duration, format_timesince, pa
         ("10MB", 10_000_000),
         ("1GB", 1_000_000_000),
         ("2TB", 2_000_000_000_000),
+        ("1.5G", 1_500_000_000),
+        ("2.5MB", 2_500_000),
         ("0", 0),
     ],
 )
@@ -27,13 +29,14 @@ def test_parse_size_valid(value, expected):
 @pytest.mark.parametrize(
     "value",
     [
-        "1.5G",
         "-5M",
         "10X",
         "abc",
         "",
         "123abc456",
         " 10 K",
+        ".5G",
+        "1.5.5G",
     ],
 )
 def test_parse_size_invalid(value):
@@ -51,6 +54,8 @@ def test_parse_size_invalid(value):
         ("1w", 604_800),
         ("1mo", 2_592_000),
         ("1y", 31_536_000),
+        ("1.5h", 5_400),
+        ("0.5d", 43_200),
         ("0", 0),
     ],
 )
@@ -61,7 +66,6 @@ def test_parse_duration_valid(value, expected):
 @pytest.mark.parametrize(
     "value",
     [
-        "1.5h",
         "3month",
         "-5m",
         "10X",

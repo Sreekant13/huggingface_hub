@@ -17,7 +17,7 @@ import re
 import time
 
 
-RE_NUMBER_WITH_UNIT = re.compile(r"(\d+)([a-z]+)", re.IGNORECASE)
+RE_NUMBER_WITH_UNIT = re.compile(r"(\d+(?:\.\d+)?)([a-z]+)", re.IGNORECASE)
 
 BYTE_UNITS: dict[str, int] = {
     "k": 1_000,
@@ -58,22 +58,24 @@ def _parse_with_unit(value: str, units: dict[str, int]) -> int:
     stripped = value.strip()
     if not stripped:
         raise ValueError("Value cannot be empty.")
+
+    # Plain number (no unit), taken as-is (bytes or seconds). Accepts int or float.
     try:
-        return int(value)
-    except ValueError:
+        return int(float(stripped))
+    except (ValueError, OverflowError):
         pass
 
     match = RE_NUMBER_WITH_UNIT.fullmatch(stripped)
     if not match:
-        raise ValueError(f"Invalid value '{value}'. Must match pattern '\\d+[a-z]+' or be a plain number.")
+        raise ValueError(f"Invalid value '{value}'. Must match pattern '\\d+(\\.\\d+)?[a-z]+' or be a plain number.")
 
-    number = int(match.group(1))
+    number = float(match.group(1))
     unit = match.group(2).lower()
 
     if unit not in units:
         raise ValueError(f"Unknown unit '{unit}'. Must be one of {list(units.keys())}.")
 
-    return number * units[unit]
+    return int(number * units[unit])
 
 
 def format_duration(secs: int | None) -> str:
